@@ -1,0 +1,16 @@
+{
+  "name": "dev-tinder",
+  "version": "1.0.0",
+  "description": "A platform to connect developers",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "dev": "nodemon src/app.js"
+  },
+  "author": "Prashanth S",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9"
+  }
+}
