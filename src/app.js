@@ -2,17 +2,23 @@ const express = require("express");
 const { connectDb } = require("./config/database");
 const User = require("./models/user");
 const app = express(); // Instance of an express.js application
+const { validateSignUpData } = require("./utils/validator");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
 
 app.post("/sign-up", async (req, res) => {
-  const user = new User({ ...req.body });
-
   try {
+    validateSignUpData(req);
+    const { password } = req.body;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = new User({ ...req.body, password: passwordHash });
     await user.save();
     res.send("User saved successfully");
   } catch (err) {
-    res.status(400).send(err.message);
+    res.status(400).send("ERROR: " + err.message);
   }
 });
 
@@ -76,6 +82,28 @@ app.patch("/user/:id", async (req, res) => {
     res.status(200).send("User updated successfully");
   } catch (e) {
     // console.log(e);
+
+    res.status(400).send("UPDATE FAILED: " + e.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      res.send("Login Successful !");
+    } else {
+      throw new Error("Invalid credentials");
+    }
+  } catch (e) {
+    console.log(e);
 
     res.status(400).send("UPDATE FAILED: " + e.message);
   }
