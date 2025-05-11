@@ -1,14 +1,24 @@
-const express = require("express");
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
-const app = express(); // Instance of an express.js application
-
-const adminAuth = (req, res, next) => {
-    console.log(req.body);
-    
-    if(req.body.userId!== "abc"){
-        res.status(401).send("User Unauthenticated")
+const userAuth = async (req, res, next) => {
+  try {
+    const { token } = req.cookies;
+    if (!token) {
+      throw new Error("Token is not valid!");
     }
-    next()
-}
+    const decoded = jwt.decode(token);
+    const { _id } = decoded;
+    const user = await User.findById({ _id });
 
-module.exports = {adminAuth}
+    if (!user) {
+      throw new Error("User not found");
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    res.status(404).send("Error: " + err.message);
+  }
+};
+
+module.exports = { userAuth };

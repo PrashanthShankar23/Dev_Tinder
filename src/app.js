@@ -4,8 +4,11 @@ const User = require("./models/user");
 const app = express(); // Instance of an express.js application
 const { validateSignUpData } = require("./utils/validator");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const { userAuth } = require("./middlewares/auth");
 
-app.use(express.json());
+app.use(express.json()); // we use this because we want to parse any request to json
+app.use(cookieParser());
 
 app.post("/sign-up", async (req, res) => {
   try {
@@ -19,6 +22,38 @@ app.post("/sign-up", async (req, res) => {
     res.send("User saved successfully");
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+
+    const isPasswordValid = await user.validatePassword(password);
+    if (isPasswordValid) {
+      const token = user.getJWT();
+      res.cookie("token", token, {
+        expires: new Date(Date.now() * 8 * 3600000),
+      });
+      res.send("Login Successful !");
+    } else {
+      throw new Error("Invalid credentials");
+    }
+  } catch (e) {
+    res.status(400).send("LOGIN FAILED: " + e.message);
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    res.send(req.user);
+  } catch (e) {
+    res.status(400).send(e.message);
   }
 });
 
@@ -82,28 +117,6 @@ app.patch("/user/:id", async (req, res) => {
     res.status(200).send("User updated successfully");
   } catch (e) {
     // console.log(e);
-
-    res.status(400).send("UPDATE FAILED: " + e.message);
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {
-      throw new Error("Invalid credentials");
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (isPasswordValid) {
-      res.send("Login Successful !");
-    } else {
-      throw new Error("Invalid credentials");
-    }
-  } catch (e) {
-    console.log(e);
 
     res.status(400).send("UPDATE FAILED: " + e.message);
   }
