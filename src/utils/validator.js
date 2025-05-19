@@ -3,8 +3,6 @@ const validator = require("validator");
 const validateSignUpData = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
 
-  console.log(firstName, lastName);
-
   if (!firstName || !lastName) {
     throw new Error("Name is not valid!");
   }
@@ -18,4 +16,46 @@ const validateSignUpData = (req) => {
   }
 };
 
-module.exports = { validateSignUpData };
+const validateProfileEditData = (req) => {
+  const allowedFields = [
+    "photoUrl",
+    "about",
+    "firstName",
+    "lastName",
+    "emailId",
+    "skills",
+    "gender",
+    "age",
+  ];
+
+  const isEditAllowed = Object.keys(req.body).every((field) => {
+    return allowedFields.includes(field);
+  });
+
+  return isEditAllowed;
+};
+
+const validatePasswordLoggedOutEdit = (req) => {
+  const allowedFields = ["password", "emailId"];
+  const isPasswordChangeAllowed = Object.keys(req.body).every((field) => {
+    return allowedFields.includes(field);
+  });
+
+  return isPasswordChangeAllowed;
+};
+
+const validatePasswordLoggedInEdit = (req) => {
+  const allowedFields = ["oldPassword", "newPassword"];
+  const isPasswordChangeAllowed = Object.keys(req.body).every((field) => {
+    return allowedFields.includes(field);
+  });
+
+  return isPasswordChangeAllowed;
+};
+
+module.exports = {
+  validateSignUpData,
+  validateProfileEditData,
+  validatePasswordLoggedInEdit,
+  validatePasswordLoggedOutEdit,
+};
