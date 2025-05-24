@@ -31,15 +31,6 @@ requestRouter.post(
       if (existingRequest) {
         throw new Error("Connection Request exists");
       }
-      // if (status === "interested") {
-      //   const toUserRequest = await ConnectionRequest.findOne({
-      //     fromUserId: toUserId,
-      //   });
-
-      //   if (toUserRequest?.toUserId.toString() === fromUserId.toString()) {
-      //     status = "accepted";
-      //   }
-      // }
 
       const connectionRequest = new ConnectionRequest({
         fromUserId,
@@ -50,6 +41,57 @@ requestRouter.post(
       const data = await connectionRequest.save();
       res.json({
         data: data,
+      });
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  }
+);
+
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
+      const allowedStatus = ["accepted", "rejected"];
+
+      if (!allowedStatus.includes(status)) {
+        throw new Error("Invalid status value");
+      }
+
+      const requestor = await User.findById(requestId);
+
+      if (!requestor) {
+        throw new Error("The user does not exist");
+      }
+      const existingRequest = await ConnectionRequest.findOne({
+        fromUserId: requestId,
+        toUserId: loggedInUser._id,
+      });
+
+      if (!existingRequest) {
+        throw new Error("Connection Request does not exist");
+      }
+
+      const existingStatus = existingRequest.status;
+      switch (existingStatus !== "interested") {
+        case existingStatus === "ignored":
+          throw new Error(`${requestor.firstName} is not interested in you`);
+
+        case allowedStatus.includes(existingStatus):
+          throw new Error(
+            `You have already ${existingStatus} ${requestor.firstName}'s request`
+          );
+      }
+
+      existingRequest.status = status;
+      const data = await existingRequest.save();
+
+      res.json({
+        message: `You have ${status} ${requestor.firstName}'s request`,
+        data,
       });
     } catch (err) {
       res.status(400).json({ message: err.message });
