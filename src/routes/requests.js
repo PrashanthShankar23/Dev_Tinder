@@ -76,14 +76,13 @@ requestRouter.post(
       }
 
       const existingStatus = existingRequest.status;
-      switch (existingStatus !== "interested") {
-        case existingStatus === "ignored":
-          throw new Error(`${requestor.firstName} is not interested in you`);
 
-        case allowedStatus.includes(existingStatus):
-          throw new Error(
-            `You have already ${existingStatus} ${requestor.firstName}'s request`
-          );
+      if (existingStatus === "ignored") {
+        throw new Error(`${requestor.firstName} is not interested in you`);
+      } else if (allowedStatus.includes(existingStatus)) {
+        throw new Error(
+          `You have already ${existingStatus} ${requestor.firstName}'s request`
+        );
       }
 
       existingRequest.status = status;

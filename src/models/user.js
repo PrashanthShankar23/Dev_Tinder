@@ -47,16 +47,15 @@ const userSchema = new mongoose.Schema(
       lowerCase: true,
       enum: {
         values: ["male", "female", "others"],
-        message: `Gender is not supported`,
+        message: "{VALUE} is not supported",
       },
     },
     photoUrl: {
       type: String,
-      default: "https://www.geographyandyou.com/images/user-profile.png",
-      validate(value) {
-        if (!validator.isURL(value)) {
-          throw new Error("Invalid photo URL: ", value);
-        }
+      default: function () {
+        const f = this.firstName?.[0].toUpperCase() || "F";
+        const l = this.lastName?.[0].toUpperCase() || "L";
+        return `https://ui-avatars.com/api/?name=${f}+${l}&background=random`;
       },
     },
     about: {

@@ -20,7 +20,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
   }
 });
 
-// Get all the connections for the logged in user]jujyhy
+// Get all the connections for the logged in user
 userRouter.get("/user/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -52,7 +52,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    let limit = parseInt(req.query.limit) || 10;
     limit = limit > 50 ? 50 : limit;
 
     const connectionData = await ConnectionRequest.find({

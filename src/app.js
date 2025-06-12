@@ -2,9 +2,16 @@ const express = require("express");
 const { connectDb } = require("./config/database");
 const app = express(); // Instance of an express.js application
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
-app.use(express.json()); // we use this because we want to parse any request to json
+app.use(express.json({ limit: "10mb" })); // we use this because we want to parse all request to json
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
